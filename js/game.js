@@ -1,9 +1,12 @@
 /*global Phaser*/
+import SplashScene from "./splashScene.js";
+// Our Game Scene
+const splashScene = new SplashScene();
 // Game Scene
 const config = {
   type: Phaser.AUTO,
-  width:1920,
-  height:1080,
+  width: 1920,
+  height: 1080,
   physics: {
     default: 'arcade',
     arcade: {
@@ -21,4 +24,4 @@ const config = {
 }
 
 const game = new Phaser.Game(config)
-console.log(game)
+game.scene.add('SplashScene', splashScene)
