@@ -1,4 +1,3 @@
-console.log("a")
 /*global Phaser*/
 import SplashScene from "/js/splashScene.js";
 import TitleScene from "/js/titleScene.js";
