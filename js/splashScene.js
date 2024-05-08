@@ -15,7 +15,7 @@ class SplashScene extends Phaser.Scene{
     this.splashSceneBackgroundImage.y=1080/2
   }
   update(time,delta){
-    if (time>6000){
+    if (time>3000){
       this.scene.switch('titleScene')
     }
   }
