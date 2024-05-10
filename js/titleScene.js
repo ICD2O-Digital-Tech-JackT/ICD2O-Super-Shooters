@@ -7,14 +7,9 @@ class TitleScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#000000')
   }
   preload(){
-    console.log('Title Scene')
-    this.load.image('titleSceneBackground','newimage')
-    this.load.audio()
-   
+    console.log('Title Scene') 
   }
   create(data){
-     this.titleSceneBackground.play();
-    this.audio = this.add.Sound.play();
   }
   update(time,delta){
   }
