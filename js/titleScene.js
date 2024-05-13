@@ -9,20 +9,24 @@ class TitleScene extends Phaser.Scene {
   }
   preload(){
     console.log('Title Scene') 
-    this.load.image('titleSceneBackground','./assets/aliens_screen_image.jpg')
+    this.load.video('titleSceneBackground','./assets/SpaceShipEnter.mp4')
     this.load.image('titleSceneText','./assets/SuperShootersTitleText.png')
   }
   create(data){
     //Background
-    this.titleSceneBackgroundImage = this.add.sprite(0,0,'titleSceneBackground').setScale(2.75)
-    this.titleSceneBackgroundImage.x = 1920/2
-    this.titleSceneBackgroundImage.y = 1080/2
+    this.titleSceneBackgroundVideo = this.add.video(0,0,'titleSceneBackground')
+    this.titleSceneBackgroundVideo.play(false);
+    this.titleSceneBackgroundVideo.x = 1920/2
+    this.titleSceneBackgroundVideo.y = 1080/2
     //Text
-    this.titleSceneBackgroundImage = this.add.sprite(0,0,'titleSceneText').setScale(1.25)
-    this.titleSceneBackgroundImage.x = 1920/4
+    this.titleSceneBackgroundImage = this.add.sprite(0,0,'titleSceneText').setScale(2.25)
+    this.titleSceneBackgroundImage.x = 1920/3
     this.titleSceneBackgroundImage.y = 1080/3
   }
   update(time,delta){
+    if (time>9000){
+      this.scene.switch('menuScene')
+    }
   }
 }
 export default TitleScene
