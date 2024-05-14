@@ -2,7 +2,7 @@
 import SplashScene from "/js/splashScene.js";
 import TitleScene from "/js/titleScene.js";
 import MenuScene from "/js/menuScene.js";
-import GameScene from "/js/menuScene.js";
+import GameScene from "/js/gameScene.js";
 // Our Game Scene
 const splashScene = new SplashScene();
 const titleScene = new TitleScene();
@@ -16,7 +16,7 @@ const config = {
   physics: {
     default: 'arcade',
     arcade: {
-      debug: true
+      debug: false
     }
   },
   //Set background colour
