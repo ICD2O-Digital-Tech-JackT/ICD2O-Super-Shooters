@@ -8,7 +8,6 @@ class TitleScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#000000')
   }
   preload(){
-    console.log('Title Scene') 
     this.load.video('titleSceneBackground','./assets/SpaceShipEnter.mp4')
     this.load.image('titleSceneText','./assets/SuperShootersTitleText.png')
   }

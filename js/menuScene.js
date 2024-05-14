@@ -8,7 +8,6 @@ class MenuScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#000000')
   }
   preload(){
-    console.log('Menu Scene')
     this.load.image('menuSceneBackgroundImage','./assets/MenuSceneBackground.png');
     this.load.image('startButton','assets/PlayButton.png')
   }
