@@ -4,6 +4,7 @@ class GameScene extends Phaser.Scene {
     this.background = null;
     this.ship = null;
     this.shipVel = 0;
+    this.fireMissile=false
   }
   init(data){
     this.cameras.main.setBackgroundColor('#000000')
@@ -12,7 +13,7 @@ class GameScene extends Phaser.Scene {
     //images
     this.load.image('starBackground','./assets/starBackground.png')
     this.load.image('ship','./assets/spaceShip.png')
-   // this.load.image('missile','/assets/missile.png')
+    this.load.image('missile','/assets/missile.png')
   }
   create(data){
     //background
@@ -21,7 +22,7 @@ class GameScene extends Phaser.Scene {
     //ship
     this.ship = this.physics.add.sprite(225,1080/2,'ship').setScale(5.0)
     //misslegroup
-   // this.missileGroup = this.physics.add.group()
+    this.missileGroup = this.physics.add.group()
   }
   update(time,delta){
     //updates 60 times a second
@@ -35,7 +36,7 @@ class GameScene extends Phaser.Scene {
     //Function to clamp the speed, so its fixed within a certain ranges
     const clampNumber = (num, a, b) => Math.max(Math.min(num, Math.max(a, b)), Math.min(a, b));
     //Detect movement, and change velocityssw
-    if (LeftKey.isDown==true||LeftKey2.isDown==true){a
+    if (LeftKey.isDown==true||LeftKey2.isDown==true){
       this.shipVel=clampNumber(this.shipVel-2,-9,9)
     } else if (RightKey.isDown==true||RightKey2.isDown==true){
       this.shipVel=clampNumber(this.shipVel+2,-9,9)
@@ -53,8 +54,13 @@ class GameScene extends Phaser.Scene {
       this.ship.y = 0
     }
     //Missiles
-    if (MissileKey.isDown==true){
-      //const NewMissile = this.physics.add.sprite(this.ship.x,this.ship.y,'missile').setScale(2)
+    if (MissileKey.isDown===true){
+      if (this.fireMissile == false){
+        //fire Missile
+        const NewMissile = this.physics.add.sprite(this.ship.x,this.ship.y,'missile').setScale(2)
+        this.missileGroup.add(NewMissile)
+      }
+      
     }
   }
   RotateShip(degree) {
