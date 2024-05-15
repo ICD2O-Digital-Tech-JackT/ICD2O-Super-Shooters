@@ -26,7 +26,6 @@ class GameScene extends Phaser.Scene {
   }
   update(time,delta){
     //updates 60 times a second
-    const Speed = 5
     //Keybinds for movement (2 for up 2 for down depending on playstyle)
     const LeftKey = this.input.keyboard.addKey('W')
     const LeftKey2 = this.input.keyboard.addKey('UP')
@@ -35,7 +34,7 @@ class GameScene extends Phaser.Scene {
     const MissileKey = this.input.keyboard.addKey('SPACE')
     //Function to clamp the speed, so its fixed within a certain ranges
     const clampNumber = (num, a, b) => Math.max(Math.min(num, Math.max(a, b)), Math.min(a, b));
-    //Detect movement, and change velocityssw
+    //Detect movement, and change velocities
     if (LeftKey.isDown==true||LeftKey2.isDown==true){
       this.shipVel=clampNumber(this.shipVel-2,-9,9)
     } else if (RightKey.isDown==true||RightKey2.isDown==true){
