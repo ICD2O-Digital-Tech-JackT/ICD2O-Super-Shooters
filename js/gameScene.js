@@ -57,10 +57,12 @@ class GameScene extends Phaser.Scene {
     if (MissileKey.isDown===true){
       if (this.fireMissile == false){
         //fire Missile
+        this.fireMissile=true
         const NewMissile = this.physics.add.sprite(this.ship.x,this.ship.y,'missile').setScale(2)
         this.missileGroup.add(NewMissile)
       }
-      
+    } else {
+      this.fireMissile=false
     }
   }
   RotateShip(degree) {
