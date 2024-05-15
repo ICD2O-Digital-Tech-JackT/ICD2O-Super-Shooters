@@ -59,6 +59,7 @@ class GameScene extends Phaser.Scene {
         //fire Missile
         this.fireMissile=true
         const NewMissile = this.physics.add.sprite(this.ship.x,this.ship.y,'missile').setScale(2)
+        NewMissile.rotation = Phaser.Math.DegToRad(90);
         this.missileGroup.add(NewMissile)
       }
     } else {
