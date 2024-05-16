@@ -17,6 +17,8 @@ class GameScene extends Phaser.Scene {
     this.load.image('starBackground','./assets/starBackground.png')
     this.load.image('ship','./assets/spaceShip.png')
     this.load.image('missile','/assets/missile.png')
+    //sound
+    this.load.audio('missile','./assets/missile.mp3')
   }
   create(data){
     //background
@@ -73,6 +75,7 @@ class GameScene extends Phaser.Scene {
         const NewMissile = this.physics.add.sprite(this.ship.x+20,this.ship.y,'missile').setScale(.3)
         NewMissile.rotation = Phaser.Math.DegToRad(90);
         this.missileGroup.add(NewMissile)
+        this.sound.play('missile')
       }
     } else {
       this.fireMissile=false
