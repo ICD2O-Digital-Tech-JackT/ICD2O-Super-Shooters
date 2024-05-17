@@ -42,7 +42,6 @@ class GameScene extends Phaser.Scene {
     this.load.image('alien', '/assets/alien.png')
     //sound
     this.load.audio('missile', './assets/missile.mp3')
-    this.load.audio('explosion', './assets/barrelExploding.mp3')
   }
   create(data) {
     //scoreText
@@ -68,10 +67,13 @@ class GameScene extends Phaser.Scene {
     this.createAlien()
     this.physics.add.collider(this.missileGroup, this.alienGroup, function(missileCollide, alienCollide) {
       this.createAlien()
+      const sound = new Audio('./assets/Explosion.mp3');
+      sound.loop = false;
+      sound.volume = .5;
+      sound.play();
       this.hasCollided = true;
       missileCollide.destroy();
       alienCollide.destroy();
-      // this.sound.play('explosion')
       if (this.currentAliens < this.maxAliens) {
         this.createAlien();
         this.currentAliens += 1;
