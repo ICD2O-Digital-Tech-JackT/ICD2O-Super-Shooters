@@ -1,4 +1,12 @@
 class GameScene extends Phaser.Scene {
+  //Create alien function
+  
+  createAlien() {
+    const YOffset = Phaser.Math.Between(10, 1080);
+    const anAlien = this.physics.add.sprite(1920, YOffset, 'alien');
+    anAlien.yVel = Phaser.Math.Between(-5,5);
+    this.alienGroup.add(anAlien);
+  }
   constructor() {
     super({ key: 'gameScene' })
     this.background = null;
@@ -8,6 +16,8 @@ class GameScene extends Phaser.Scene {
     this.shipVel = 0;
     this.fireMissile = false
     this.currentzindex = -1;
+    this.currentAliens = 0;
+    this.maxAliens = 20;
   }
   init(data) {
     this.cameras.main.setBackgroundColor('#000000')
@@ -18,8 +28,10 @@ class GameScene extends Phaser.Scene {
     this.load.image('ship', './assets/spaceShip.png')
     this.load.image('missile', '/assets/missile.png')
     this.load.image('smoke', '/assets/SmokePixel.png')
+    this.load.image('alien', '/assets/alien.png')
     //sound
     this.load.audio('missile', './assets/missile.mp3')
+    this.load.audio('explosion', './assets/barrelExploding.mp3')
   }
   create(data) {
     //background
@@ -36,6 +48,20 @@ class GameScene extends Phaser.Scene {
     this.ship = this.physics.add.sprite(225, 1080 / 2, 'ship').setScale(0.7)
     //misslegroup
     this.missileGroup = this.physics.add.group()
+    //alienGroup
+    this.alienGroup = this.physics.add.group()
+    this.createAlien()
+    this.physics.add.collider(this.missileGroup, this.alienGroup, function(missileCollide, alienCollide) {
+      missileCollide.destroy()
+      alienCollide.destroy()
+     // this.sound.play('explosion')
+      this.createAlien()
+      if (this.currentAliens<this.maxAliens){
+        this.createAlien()
+        this.currentAliens+=1
+      }
+    }.bind(this))
+    //smokegroup
     this.smokeGroup = this.physics.add.group()
   }
   update(time, delta) {
@@ -104,27 +130,42 @@ class GameScene extends Phaser.Scene {
     }
     this.missileGroup.children.each((item) => {
       item.x += 10;
-      item.rotation = Phaser.Math.DegToRad(Math.sin(time / 50) * 5 + 90);
-      item.y = item.y - Math.sin(time / 50) * 2;
+      item.rotation = Phaser.Math.DegToRad(Math.sin(time / 50) * 7 + 90);
+      item.y = item.y - Math.sin(time / 50) * 4;
       if (item.x >= 1980) {
         item.destroy();
       } else {
-        if (Math.random()<.2){
+        if (Math.random() < .2) {
           const Smoke = this.physics.add.sprite(item.x - 15, item.y, 'smoke').setScale(0.1);
           Smoke.alpha = .5
           this.smokeGroup.add(Smoke);
         }
       }
     });
+    //Smoke Particles
     this.smokeGroup.children.each(function(item) {
       item.rotation = Phaser.Math.DegToRad(Math.cos(time / 50) * 5 + 90)
       item.alpha -= 0.02
-      item.setScale(item.scaleX+.001)
-      if (item.alpha<=.05){
+      item.setScale(item.scaleX + .001)
+      if (item.alpha <= .05) {
         item.destroy()
       }
     }
     )
+    //Alien Collision
+    this.alienGroup.children.each(function(alien) {
+      alien.y+=alien.yVel
+      alien.x-=20
+      if (alien.y > 1080) {
+        alien.y = 5
+      }
+      if (alien.y < 0) {
+        alien.y = 1075
+      }
+      if (alien.x<0){
+        alien.x = 1920
+      }
+    });
   }
   RotateShip(degree) {
     //Rotating in radians so that it doesn't look wonky
