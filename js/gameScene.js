@@ -1,23 +1,34 @@
 class GameScene extends Phaser.Scene {
   //Create alien function
-  
+
   createAlien() {
+    //function to create an alien and assign a velocity
     const YOffset = Phaser.Math.Between(10, 1080);
     const anAlien = this.physics.add.sprite(1920, YOffset, 'alien');
-    anAlien.yVel = Phaser.Math.Between(-5,5);
+    anAlien.yVel = Phaser.Math.Between(-5, 5);
+    anAlien.setScale(.1)
     this.alienGroup.add(anAlien);
   }
   constructor() {
     super({ key: 'gameScene' })
+    //background
     this.background = null;
     this.background2 = null;
     this.background3 = null;
+    this.currentzindex = -1;
+    //ship
     this.ship = null;
     this.shipVel = 0;
-    this.fireMissile = false
-    this.currentzindex = -1;
+    //missiles
+    this.fireMissile = false;
+    //aliens  
+    this.hasCollided = false;
     this.currentAliens = 0;
     this.maxAliens = 20;
+    //score
+    this.score = 0;
+    this.scoreText = null;
+    this.scoreTextStyle = { font: '100px Arial', fill: '#ffffff', align: 'center' };
   }
   init(data) {
     this.cameras.main.setBackgroundColor('#000000')
@@ -34,6 +45,10 @@ class GameScene extends Phaser.Scene {
     this.load.audio('explosion', './assets/barrelExploding.mp3')
   }
   create(data) {
+    //scoreText
+    this.scoreText = this.add.text(10, 10, 'Score: ', this.score.toString(), this.scoreTextStyle)
+    this.scoreText.setDepth(100)
+    this.scoreText.setScale(5)
     //background
     this.background = this.add.image(0, 0, 'starBackground').setScale(2)
     this.background.x = 540 * 6
@@ -52,17 +67,27 @@ class GameScene extends Phaser.Scene {
     this.alienGroup = this.physics.add.group()
     this.createAlien()
     this.physics.add.collider(this.missileGroup, this.alienGroup, function(missileCollide, alienCollide) {
-      missileCollide.destroy()
-      alienCollide.destroy()
-     // this.sound.play('explosion')
       this.createAlien()
-      if (this.currentAliens<this.maxAliens){
-        this.createAlien()
-        this.currentAliens+=1
+      this.hasCollided = true;
+      missileCollide.destroy();
+      alienCollide.destroy();
+      // this.sound.play('explosion')
+      if (this.currentAliens < this.maxAliens) {
+        this.createAlien();
+        this.currentAliens += 1;
+        console.log(this.currentAliens);
       }
-    }.bind(this))
+      this.score += 1;
+      this.scoreText.setText('Score: ' + this.score.toString());
+    }.bind(this));
+
     //smokegroup
     this.smokeGroup = this.physics.add.group()
+    //music
+    const audio = new Audio('./assets/mainTheme.mp3');
+    audio.loop = true;
+    audio.volume = 0.5;
+    audio.play();
   }
   update(time, delta) {
     //updates 60 times a second
@@ -152,17 +177,17 @@ class GameScene extends Phaser.Scene {
       }
     }
     )
-    //Alien Collision
+    //Moving Aliens
     this.alienGroup.children.each(function(alien) {
-      alien.y+=alien.yVel
-      alien.x-=20
+      alien.y += alien.yVel
+      alien.x -= 20
       if (alien.y > 1080) {
         alien.y = 5
       }
       if (alien.y < 0) {
         alien.y = 1075
       }
-      if (alien.x<0){
+      if (alien.x < 0) {
         alien.x = 1920
       }
     });
