@@ -7,6 +7,7 @@ class GameScene extends Phaser.Scene {
     const anAlien = this.physics.add.sprite(2020, YOffset, 'alien');
     anAlien.yVel = Phaser.Math.Between(-5, 5);
     anAlien.setScale(.1)
+    anAlien.tex = 1;
     this.alienGroup.add(anAlien);
   }
   constructor() {
@@ -32,6 +33,9 @@ class GameScene extends Phaser.Scene {
     this.score = 0;
     this.scoreText = null;
     this.scoreTextStyle = { fontFamily: '100px Arial', fill: '#ffffff', align: 'center' };
+    this.highscore = 0;
+    this.highscoreText = null;
+    this.highscoreTextStyle = { fontFamily: '100px Arial', fill: '#ffffff', align: 'center' };
     //endText
     this.endText = null;
     this.endTextStyle = { font: '100px Arial', fill: '#ffffff', align: 'center' };
@@ -50,6 +54,7 @@ class GameScene extends Phaser.Scene {
     this.load.image('missile', '/assets/missile.png')
     this.load.image('smoke', '/assets/SmokePixel.png')
     this.load.image('alien', '/assets/alien.png')
+    this.load.image('alien2', '/assets/alien2.png')
     //HealthbarImages
     this.load.image('HB_Empty', './assets/Healthbar/EmptyHealthbar.png')
     this.load.image('HB_Full', './assets/Healthbar/HealthbarFull.png')
@@ -65,6 +70,9 @@ class GameScene extends Phaser.Scene {
     this.scoreText = this.add.text(10, 10, 'Score: 0', this.scoreTextStyle);
     this.scoreText.setDepth(100)
     this.scoreText.setScale(5)
+    this.highscoreText = this.add.text(10, 70, 'Highscore: '+this.highscore.toString(), this.scoreTextStyle);
+    this.highscoreText.setDepth(100)
+    this.highscoreText.setScale(5)
     //background
     this.background = this.add.image(0, 0, 'starBackground').setScale(2)
     this.background.x = 540 * 6
@@ -78,7 +86,7 @@ class GameScene extends Phaser.Scene {
     //healthbar
     this.healthBar = this.add.image(0, 0, 'HB_Full').setScale(.6)
     this.healthBar.x = 500
-    this.healthBar.y = 100
+    this.healthBar.y = 75
     //ship
     this.ship = this.physics.add.sprite(225, 1080 / 2, 'ship').setScale(0.7)
     //misslegroup
@@ -113,6 +121,10 @@ class GameScene extends Phaser.Scene {
         this.score += 1;
       }
       this.scoreText.setText('Score: ' + this.score.toString());
+      if (this.score>this.highscore){
+        this.highscore = this.score;
+        this.highscoreText.setText('Highscore: ' + this.highscore.toString());
+      }
     }.bind(this));
 
     //End the game
@@ -197,7 +209,7 @@ class GameScene extends Phaser.Scene {
     }
     //super Speed
     if (SuperSpeedKey.isDown == true){
-      if (this.canZoom == true){
+      if (this.canZoom == true&&this.canFire == true){
         this.canZoom = false;
         this.superSpeed = true;
         const sound = new Audio('./assets/SuperSpeed.mp3');
@@ -294,6 +306,18 @@ class GameScene extends Phaser.Scene {
     //moving Aliens
     this.alienGroup.children.each(function(alien) {
       alien.y += alien.yVel
+      if (Phaser.Math.Between(1, 100) == 1){
+        if (alien.tex == 1){
+          alien.tex = 2
+        } else{
+          alien.tex = 1
+        }
+      }
+      if (alien.tex == 1){
+        alien.setTexture('alien')
+      } else{
+        alien.setTexture('alien2')
+      }
       if (this.superSpeed==true){
          alien.x -= 30
       } else{
