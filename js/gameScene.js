@@ -19,12 +19,15 @@ class GameScene extends Phaser.Scene {
     //ship
     this.ship = null;
     this.shipVel = 0;
+    this.superSpeed = false;
+    this.canZoom = true;
     //missiles
     this.canFire = true;
     //aliens  
     this.hasCollided = false;
     this.currentAliens = 0;
     this.maxAliens = 10;
+    // this.alienSpeed = 10;
     //score
     this.score = 0;
     this.scoreText = null;
@@ -32,6 +35,10 @@ class GameScene extends Phaser.Scene {
     //endText
     this.endText = null;
     this.endTextStyle = { font: '100px Arial', fill: '#ffffff', align: 'center' };
+    //other
+    this.health = 3;
+    this.currentTime = 0;
+    this.lastDamaged = 0;
   }
   init(data) {
     this.cameras.main.setBackgroundColor('#000000')
@@ -43,6 +50,11 @@ class GameScene extends Phaser.Scene {
     this.load.image('missile', '/assets/missile.png')
     this.load.image('smoke', '/assets/SmokePixel.png')
     this.load.image('alien', '/assets/alien.png')
+    //HealthbarImages
+    this.load.image('HB_Empty', './assets/Healthbar/EmptyHealthbar.png')
+    this.load.image('HB_Full', './assets/Healthbar/HealthbarFull.png')
+    this.load.image('HB_Half', './assets/Healthbar/HealthbarHalf.png')
+    this.load.image('HB_Low', './assets/Healthbar/HealthbarLow.png')
     //sound
     this.load.audio('missile', './assets/missile.mp3')
   }
@@ -63,6 +75,10 @@ class GameScene extends Phaser.Scene {
     this.background3 = this.add.image(0, 0, 'starBackground').setScale(2)
     this.background3.x = 540 * 1
     this.background3.y = 720
+    //healthbar
+    this.healthBar = this.add.image(0, 0, 'HB_Full').setScale(.6)
+    this.healthBar.x = 500
+    this.healthBar.y = 100
     //ship
     this.ship = this.physics.add.sprite(225, 1080 / 2, 'ship').setScale(0.7)
     //misslegroup
@@ -77,6 +93,7 @@ class GameScene extends Phaser.Scene {
     };
     //alien destroy
     this.physics.add.collider(this.missileGroup, this.alienGroup, function(missileCollide, alienCollide) {
+      this.Explosion(missileCollide.x, missileCollide.y, 'Small')
       this.createAlien()
       const sound = new Audio('./assets/Explosion.mp3');
       sound.loop = false;
@@ -90,26 +107,63 @@ class GameScene extends Phaser.Scene {
         this.currentAliens += 1;
         console.log(this.currentAliens);
       }
-      this.score += 1;
+      if (this.superSpeed == true){
+        this.score += 2;
+      } else{
+        this.score += 1;
+      }
       this.scoreText.setText('Score: ' + this.score.toString());
     }.bind(this));
 
     //End the game
     this.physics.add.collider(this.ship, this.alienGroup, function(shipCollide, alienCollide) {
-      stopMusic();
-      this.canFire = false;
-      const sound = new Audio('./assets/Explosion.mp3');
-      sound.loop = false;
-      sound.volume = 1;
-      sound.play();
-      this.physics.pause()
-      shipCollide.destroy()
-      alienCollide.destroy()
-      this.score = 0
-      this.currentAliens = 0;
-      this.endText = this.add.text(1920 / 4, 1080 / 2.5, 'Game Over!\nClick to try again', this.endTextStyle)
-      this.endText.setInteractive(({ useHandCursor: true }))
-      this.endText.on('pointerdown', () => this.scene.start('gameScene'))
+      //Checking to see if the ship can be damaged
+      if (this.currentTime - this.lastDamaged > 1000) {
+        //Explosion Effect
+        this.Explosion(this.ship.x, this.ship.y, "Big")
+        //Sound
+        const sound = new Audio('./assets/Explosion.mp3');
+        sound.loop = false;
+        sound.volume = 1;
+        sound.play();
+        //Damage cooldown
+        this.lastDamaged = this.currentTime;
+        //lower health
+        this.health -= 1
+        //Set healthsprite
+        if (this.health >= 3) {
+          this.healthBar.setTexture('HB_Full')
+        }
+        if (this.health == 2) {
+          this.healthBar.setTexture('HB_Half')
+        }
+        if (this.health == 1) {
+          this.healthBar.setTexture('HB_Low')
+        }
+        if (this.health <= 0) {
+          this.healthBar.setTexture('HB_Empty')
+        }
+        //Death
+        if (this.health <= 0) {
+          //Stop music
+          stopMusic();
+          //Stop player from shooting
+          this.canFire = false;
+          //Stop player from moving
+          this.physics.pause()
+          //Destroy alien and ship
+          shipCollide.destroy()
+          alienCollide.destroy()
+          //Reset Score
+          this.score = 0
+          this.currentAliens = 0;
+          //GameOver Text
+          this.health = 3
+          this.endText = this.add.text(1920 / 4, 1080 / 2.5, 'Game Over!\nClick to try again', this.endTextStyle)
+          this.endText.setInteractive(({ useHandCursor: true }))
+          this.endText.on('pointerdown', () => this.scene.start('gameScene'))
+        }
+      }
     }.bind(this));
 
     //smokegroup
@@ -122,6 +176,7 @@ class GameScene extends Phaser.Scene {
     audio.play();
   }
   update(time, delta) {
+    this.currentTime = time
     //updates 60 times a second
     //keybinds for movement (2 for up 2 for down depending on playstyle)
     const LeftKey = this.input.keyboard.addKey('W')
@@ -129,6 +184,7 @@ class GameScene extends Phaser.Scene {
     const RightKey = this.input.keyboard.addKey('S')
     const RightKey2 = this.input.keyboard.addKey('DOWN')
     const MissileKey = this.input.keyboard.addKey('SPACE')
+    const SuperSpeedKey = this.input.keyboard.addKey('SHIFT')
     //function to clamp the speed, so its fixed within a certain range
     const clampNumber = (num, a, b) => Math.max(Math.min(num, Math.max(a, b)), Math.min(a, b));
     //detect movement, and change velocities
@@ -138,6 +194,20 @@ class GameScene extends Phaser.Scene {
       this.shipVel = clampNumber(this.shipVel + 2, -9, 9)
     } else {
       this.shipVel = clampNumber(this.shipVel * .9, -9, 9)
+    }
+    //super Speed
+    if (SuperSpeedKey.isDown == true){
+      if (this.canZoom == true){
+        this.canZoom = false;
+        this.superSpeed = true;
+        const sound = new Audio('./assets/SuperSpeed.mp3');
+        sound.loop = false;
+        sound.volume = .5;
+        sound.play();
+      }
+    } else{
+      this.canZoom = true;
+      this.superSpeed = false;
     }
     //setting ship depth
     this.ship.setDepth(5);
@@ -166,9 +236,15 @@ class GameScene extends Phaser.Scene {
     }
 
     //scrolling background
-    this.background.x -= 10
-    this.background2.x -= 10
-    this.background3.x -= 10
+    if (this.superSpeed==true){
+      this.background.x -= 20
+      this.background2.x -= 20
+      this.background3.x -= 20
+    } else{
+      this.background.x -= 10
+      this.background2.x -= 10
+      this.background3.x -= 10
+    }
     //checking if backgrounds have moved too far back
     if (this.background.x < -980) {
       this.background.x = 540 * 6
@@ -196,6 +272,8 @@ class GameScene extends Phaser.Scene {
         if (Math.random() < .2) {
           const Smoke = this.physics.add.sprite(item.x - 15, item.y, 'smoke').setScale(0.1);
           Smoke.alpha = .5
+          Smoke.Xv = 0
+          Smoke.Yv = 0
           this.smokeGroup.add(Smoke);
         }
       }
@@ -206,6 +284,8 @@ class GameScene extends Phaser.Scene {
       item.rotation = Phaser.Math.DegToRad(Math.cos(time / 50) * 5 + 90)
       item.alpha -= 0.02
       item.setScale(item.scaleX + .001)
+      item.x += item.Xv
+      item.y += item.Yv
       if (item.alpha <= .05) {
         item.destroy()
       }
@@ -214,21 +294,39 @@ class GameScene extends Phaser.Scene {
     //moving Aliens
     this.alienGroup.children.each(function(alien) {
       alien.y += alien.yVel
-      alien.x -= 20
+      if (this.superSpeed==true){
+         alien.x -= 30
+      } else{
+         alien.x -= 15
+      }
       if (alien.y > 1080) {
-        alien.y = 5
+        alien.y = 5;
       }
       if (alien.y < 0) {
-        alien.y = 1075
+        alien.y = 1075;
       }
       if (alien.x < 0) {
-        alien.x = 1920
+        alien.x = 1920;
       }
-    });
+    }.bind(this));
   }
   RotateShip(degree) {
     //rotating in radians so that it doesn't look wonky
     this.ship.rotation = Phaser.Math.DegToRad(degree);
+  }
+  Explosion(x, y, size) {
+    for (let i = 0; i < 5; i++) {
+      const Explosion = this.physics.add.sprite(x, y, 'smoke')
+      if (size == "Big") {
+        Explosion.setScale(0.3);
+      } else {
+        Explosion.setScale(0.1);
+      }
+      Explosion.alpha = .8
+      Explosion.Xv = Phaser.Math.Between(0, 10)
+      Explosion.Yv = Phaser.Math.Between(-10, 10)
+      this.smokeGroup.add(Explosion);
+    }
   }
 }
 export default GameScene
