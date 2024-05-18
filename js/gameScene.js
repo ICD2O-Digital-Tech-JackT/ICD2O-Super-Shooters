@@ -4,7 +4,7 @@ class GameScene extends Phaser.Scene {
   createAlien() {
     //function to create an alien and assign a velocity
     const YOffset = Phaser.Math.Between(10, 1080);
-    const anAlien = this.physics.add.sprite(1920, YOffset, 'alien');
+    const anAlien = this.physics.add.sprite(2020, YOffset, 'alien');
     anAlien.yVel = Phaser.Math.Between(-5, 5);
     anAlien.setScale(.1)
     this.alienGroup.add(anAlien);
@@ -20,15 +20,18 @@ class GameScene extends Phaser.Scene {
     this.ship = null;
     this.shipVel = 0;
     //missiles
-    this.fireMissile = false;
+    this.canFire = true;
     //aliens  
     this.hasCollided = false;
     this.currentAliens = 0;
-    this.maxAliens = 20;
+    this.maxAliens = 10;
     //score
     this.score = 0;
     this.scoreText = null;
-    this.scoreTextStyle = { font: '100px Arial', fill: '#ffffff', align: 'center' };
+    this.scoreTextStyle = { fontFamily: '100px Arial', fill: '#ffffff', align: 'center' };
+    //endText
+    this.endText = null;
+    this.endTextStyle = { font: '100px Arial', fill: '#ffffff', align: 'center' };
   }
   init(data) {
     this.cameras.main.setBackgroundColor('#000000')
@@ -44,8 +47,10 @@ class GameScene extends Phaser.Scene {
     this.load.audio('missile', './assets/missile.mp3')
   }
   create(data) {
+    //setup
+    this.canFire = true;
     //scoreText
-    this.scoreText = this.add.text(10, 10, 'Score: ', this.score.toString(), this.scoreTextStyle)
+    this.scoreText = this.add.text(10, 10, 'Score: 0', this.scoreTextStyle);
     this.scoreText.setDepth(100)
     this.scoreText.setScale(5)
     //background
@@ -65,6 +70,12 @@ class GameScene extends Phaser.Scene {
     //alienGroup
     this.alienGroup = this.physics.add.group()
     this.createAlien()
+    // Stop music when player dies
+    const stopMusic = () => {
+      audio.pause();
+      audio.currentTime = 0;
+    };
+    //alien destroy
     this.physics.add.collider(this.missileGroup, this.alienGroup, function(missileCollide, alienCollide) {
       this.createAlien()
       const sound = new Audio('./assets/Explosion.mp3');
@@ -83,8 +94,27 @@ class GameScene extends Phaser.Scene {
       this.scoreText.setText('Score: ' + this.score.toString());
     }.bind(this));
 
+    //End the game
+    this.physics.add.collider(this.ship, this.alienGroup, function(shipCollide, alienCollide) {
+      stopMusic();
+      this.canFire = false;
+      const sound = new Audio('./assets/Explosion.mp3');
+      sound.loop = false;
+      sound.volume = 1;
+      sound.play();
+      this.physics.pause()
+      shipCollide.destroy()
+      alienCollide.destroy()
+      this.score = 0
+      this.currentAliens = 0;
+      this.endText = this.add.text(1920 / 4, 1080 / 2.5, 'Game Over!\nClick to try again', this.endTextStyle)
+      this.endText.setInteractive(({ useHandCursor: true }))
+      this.endText.on('pointerdown', () => this.scene.start('gameScene'))
+    }.bind(this));
+
     //smokegroup
     this.smokeGroup = this.physics.add.group()
+
     //music
     const audio = new Audio('./assets/mainTheme.mp3');
     audio.loop = true;
@@ -93,15 +123,15 @@ class GameScene extends Phaser.Scene {
   }
   update(time, delta) {
     //updates 60 times a second
-    //Keybinds for movement (2 for up 2 for down depending on playstyle)
+    //keybinds for movement (2 for up 2 for down depending on playstyle)
     const LeftKey = this.input.keyboard.addKey('W')
     const LeftKey2 = this.input.keyboard.addKey('UP')
     const RightKey = this.input.keyboard.addKey('S')
     const RightKey2 = this.input.keyboard.addKey('DOWN')
     const MissileKey = this.input.keyboard.addKey('SPACE')
-    //Function to clamp the speed, so its fixed within a certain ranges
+    //function to clamp the speed, so its fixed within a certain range
     const clampNumber = (num, a, b) => Math.max(Math.min(num, Math.max(a, b)), Math.min(a, b));
-    //Detect movement, and change velocities
+    //detect movement, and change velocities
     if (LeftKey.isDown == true || LeftKey2.isDown == true) {
       this.shipVel = clampNumber(this.shipVel - 2, -9, 9)
     } else if (RightKey.isDown == true || RightKey2.isDown == true) {
@@ -109,21 +139,21 @@ class GameScene extends Phaser.Scene {
     } else {
       this.shipVel = clampNumber(this.shipVel * .9, -9, 9)
     }
-    //SettingShipDepth
+    //setting ship depth
     this.ship.setDepth(5);
-    //Move ship by velocity
+    //move ship by velocity
     this.ship.y += this.shipVel
-    //Rotate ship
+    //rotate ship
     this.RotateShip(90 + this.shipVel * 2)
-    //Wrapping
+    //wrapping
     if (this.ship.y < 0) {
       this.ship.y = 1080
     } else if (this.ship.y > 1080) {
       this.ship.y = 0
     }
-    //Missiles
+    //missiles
     if (MissileKey.isDown === true) {
-      if (this.fireMissile == false) {
+      if (this.fireMissile == false && this.canFire == true) {
         //fire Missile
         this.fireMissile = true
         const NewMissile = this.physics.add.sprite(this.ship.x + 20, this.ship.y, 'missile').setScale(.3)
@@ -135,11 +165,11 @@ class GameScene extends Phaser.Scene {
       this.fireMissile = false
     }
 
-    //Scrolling background
+    //scrolling background
     this.background.x -= 10
     this.background2.x -= 10
     this.background3.x -= 10
-    //Checking if backgrounds have moved too far back
+    //checking if backgrounds have moved too far back
     if (this.background.x < -980) {
       this.background.x = 540 * 6
       this.currentzindex -= 1
@@ -155,6 +185,7 @@ class GameScene extends Phaser.Scene {
       this.currentzindex -= 1
       this.background3.setDepth(this.currentzindex);
     }
+    //move missiles
     this.missileGroup.children.each((item) => {
       item.x += 10;
       item.rotation = Phaser.Math.DegToRad(Math.sin(time / 50) * 7 + 90);
@@ -169,7 +200,8 @@ class GameScene extends Phaser.Scene {
         }
       }
     });
-    //Smoke Particles
+
+    //smoke Particles for rockets
     this.smokeGroup.children.each(function(item) {
       item.rotation = Phaser.Math.DegToRad(Math.cos(time / 50) * 5 + 90)
       item.alpha -= 0.02
@@ -179,7 +211,7 @@ class GameScene extends Phaser.Scene {
       }
     }
     )
-    //Moving Aliens
+    //moving Aliens
     this.alienGroup.children.each(function(alien) {
       alien.y += alien.yVel
       alien.x -= 20
@@ -195,7 +227,7 @@ class GameScene extends Phaser.Scene {
     });
   }
   RotateShip(degree) {
-    //Rotating in radians so that it doesn't look wonky
+    //rotating in radians so that it doesn't look wonky
     this.ship.rotation = Phaser.Math.DegToRad(degree);
   }
 }
