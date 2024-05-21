@@ -4,6 +4,7 @@ class MenuScene extends Phaser.Scene {
     this.menuSceneBackgroundImage = null;
     this.startButton = null;
     this.tutorialMenu = null;
+    this.audio = new Audio('./assets/menuTheme.mp3');
   }
   init(data) {
     this.cameras.main.setBackgroundColor('#000000')
@@ -27,17 +28,20 @@ class MenuScene extends Phaser.Scene {
     this.tutorialMenu.setDepth(100)
     this.tutorialMenu.setInteractive({ useHandCursor: true })
     this.tutorialMenu.on('pointerdown', () => this.tutorialClose())
+    //Music
+    this.audio.loop = true;
+    this.audio.volume = 0.5;
+    this.audio.play();
   }
   update(time, delta) {
   }
   //function to toggle tutorial menu
   tutorialClose() {
-    console.log('a')
     this.tutorialMenu.destroy()
   }
   //function to start the game
   clickButton() {
-    console.log("open")
+    this.audio.pause();
     this.scene.start('gameScene')
   }
 }

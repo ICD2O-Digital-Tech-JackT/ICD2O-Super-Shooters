@@ -43,6 +43,8 @@ class GameScene extends Phaser.Scene {
     this.health = 3;
     this.currentTime = 0;
     this.lastDamaged = 0;
+    //audio
+    this.endMusic = new Audio('./assets/deathMusic.mp3');
   }
   init(data) {
     this.cameras.main.setBackgroundColor('#000000')
@@ -70,7 +72,7 @@ class GameScene extends Phaser.Scene {
     this.scoreText = this.add.text(10, 10, 'Score: 0', this.scoreTextStyle);
     this.scoreText.setDepth(100)
     this.scoreText.setScale(5)
-    this.highscoreText = this.add.text(10, 70, 'Highscore: '+this.highscore.toString(), this.scoreTextStyle);
+    this.highscoreText = this.add.text(10, 70, 'Highscore: ' + this.highscore.toString(), this.scoreTextStyle);
     this.highscoreText.setDepth(100)
     this.highscoreText.setScale(5)
     //background
@@ -115,13 +117,13 @@ class GameScene extends Phaser.Scene {
         this.currentAliens += 1;
         console.log(this.currentAliens);
       }
-      if (this.superSpeed == true){
+      if (this.superSpeed == true) {
         this.score += 2;
-      } else{
+      } else {
         this.score += 1;
       }
       this.scoreText.setText('Score: ' + this.score.toString());
-      if (this.score>this.highscore){
+      if (this.score > this.highscore) {
         this.highscore = this.score;
         this.highscoreText.setText('Highscore: ' + this.highscore.toString());
       }
@@ -159,6 +161,10 @@ class GameScene extends Phaser.Scene {
         if (this.health <= 0) {
           //Stop music
           stopMusic();
+          //Play end music
+          this.endMusic.loop = true;
+          this.endMusic.volume = 0.5;
+          this.endMusic.play();
           //Stop player from shooting
           this.canFire = false;
           //Stop player from moving
@@ -180,6 +186,9 @@ class GameScene extends Phaser.Scene {
 
     //smokegroup
     this.smokeGroup = this.physics.add.group()
+    //stop end screen music
+    this.endMusic.pause();
+    this.endMusic.currentTime = 0;
 
     //music
     const audio = new Audio('./assets/mainTheme.mp3');
@@ -208,8 +217,8 @@ class GameScene extends Phaser.Scene {
       this.shipVel = clampNumber(this.shipVel * .9, -9, 9)
     }
     //super Speed
-    if (SuperSpeedKey.isDown == true){
-      if (this.canZoom == true&&this.canFire == true){
+    if (SuperSpeedKey.isDown == true) {
+      if (this.canZoom == true && this.canFire == true) {
         this.canZoom = false;
         this.superSpeed = true;
         const sound = new Audio('./assets/SuperSpeed.mp3');
@@ -217,7 +226,7 @@ class GameScene extends Phaser.Scene {
         sound.volume = .5;
         sound.play();
       }
-    } else{
+    } else {
       this.canZoom = true;
       this.superSpeed = false;
     }
@@ -248,11 +257,11 @@ class GameScene extends Phaser.Scene {
     }
 
     //scrolling background
-    if (this.superSpeed==true){
+    if (this.superSpeed == true) {
       this.background.x -= 20
       this.background2.x -= 20
       this.background3.x -= 20
-    } else{
+    } else {
       this.background.x -= 10
       this.background2.x -= 10
       this.background3.x -= 10
@@ -306,22 +315,22 @@ class GameScene extends Phaser.Scene {
     //moving Aliens
     this.alienGroup.children.each(function(alien) {
       alien.y += alien.yVel
-      if (Phaser.Math.Between(1, 100) == 1){
-        if (alien.tex == 1){
+      if (Phaser.Math.Between(1, 100) == 1) {
+        if (alien.tex == 1) {
           alien.tex = 2
-        } else{
+        } else {
           alien.tex = 1
         }
       }
-      if (alien.tex == 1){
+      if (alien.tex == 1) {
         alien.setTexture('alien')
-      } else{
+      } else {
         alien.setTexture('alien2')
       }
-      if (this.superSpeed==true){
-         alien.x -= 30
-      } else{
-         alien.x -= 15
+      if (this.superSpeed == true) {
+        alien.x -= 30
+      } else {
+        alien.x -= 15
       }
       if (alien.y > 1080) {
         alien.y = 5;

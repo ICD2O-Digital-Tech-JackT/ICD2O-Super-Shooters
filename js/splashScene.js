@@ -19,6 +19,7 @@ class SplashScene extends Phaser.Scene {
   //function to go to menu scene
   update(time, delta) {
     if (time > 5000) {
+      
       this.scene.switch('titleScene')
     }
   }

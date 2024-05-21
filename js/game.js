@@ -1,8 +1,8 @@
 /*global Phaser*/
-import SplashScene from "./js/splashScene.js";
-import TitleScene from "./js/titleScene.js";
-import MenuScene from "./js/menuScene.js";
-import GameScene from "./js/gameScene.js";
+import SplashScene from "/js/splashScene.js";
+import TitleScene from "/js/titleScene.js";
+import MenuScene from "/js/menuScene.js";
+import GameScene from "/js/gameScene.js";
 // Our Game Scene
 const splashScene = new SplashScene();
 const titleScene = new TitleScene();
